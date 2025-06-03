@@ -170,16 +170,16 @@ module.exports = {
   deleteUser: async (req, res) => {
     let id = req.params.id;
     // console.log(id)
-     const schema = Joi.object({
-        id: Joi.string().required(),
-      });
+    const schema = Joi.object({
+      id: Joi.string().required(),
+    });
 
-      const { error, value } = schema.validate({
-        id
-      });
-      if (error) {
-        return res.status(400).json({ status: false, message: 'Lỗi giá trị nhập vào từ người dùng. Vui lòng kiểm tra lại' });
-      }
+    const { error, value } = schema.validate({
+      id
+    });
+    if (error) {
+      return res.status(400).json({ status: false, message: 'Lỗi giá trị nhập vào từ người dùng. Vui lòng kiểm tra lại' });
+    }
     try {
       let item = await Users.findById(id);
       let checked = await Users.findOne({
@@ -218,15 +218,27 @@ module.exports = {
       };
 
 
-      const folderIdCha = id;
-
+      let folderIdCha = id;
       if (isValidObjectId(folderIdCha)) {
-        const folderPathCha = path.join(__dirname, "../upload/", folderIdCha);
-        try {
-          fs.rmdirSync(folderPathCha);
-          console.log('Folder removed successfully (sync)!');
-        } catch (err) {
-          console.error('Error removing folder (sync):', err);
+        // Sanitize folderIdCha: ensure it doesn't contain path separators or malicious characters
+        const sanitizedFolderId = folderIdCha.replace(/[^a-zA-Z0-9_-]/g, '');
+
+        // Construct the folder path
+        const folderPathCha = path.join(__dirname, "../upload/", sanitizedFolderId);
+
+        // Optional: normalize and verify that the final path is within the intended directory
+        const uploadDir = path.resolve(__dirname, "../upload");
+        const finalPath = path.resolve(folderPathCha);
+
+        if (finalPath.startsWith(uploadDir)) {
+          try {
+            fs.rmdirSync(finalPath);
+            console.log('Folder removed successfully (sync)!');
+          } catch (err) {
+            console.error('Error removing folder (sync):', err);
+          }
+        } else {
+          console.error('Path traversal attempt detected.');
         }
       } else {
         console.error('Invalid folder ID:', folderIdCha);
@@ -386,34 +398,47 @@ module.exports = {
         taikhoan: item._id
       });
 
-     const folderIdCha = id;
 
+      let folderIdCha = id;
       if (isValidObjectId(folderIdCha)) {
-        const folderPathCha = path.join(__dirname, "../upload/", folderIdCha);
-        try {
-          fs.rmdirSync(folderPathCha);
-          console.log('Folder removed successfully (sync)!');
-        } catch (err) {
-          console.error('Error removing folder (sync):', err);
+        // Sanitize folderIdCha: ensure it doesn't contain path separators or malicious characters
+        const sanitizedFolderId = folderIdCha.replace(/[^a-zA-Z0-9_-]/g, '');
+
+        // Construct the folder path
+        const folderPathCha = path.join(__dirname, "../upload/", sanitizedFolderId);
+
+        // Optional: normalize and verify that the final path is within the intended directory
+        const uploadDir = path.resolve(__dirname, "../upload");
+        const finalPath = path.resolve(folderPathCha);
+
+        if (finalPath.startsWith(uploadDir)) {
+          try {
+            fs.rmdirSync(finalPath);
+            console.log('Folder removed successfully (sync)!');
+          } catch (err) {
+            console.error('Error removing folder (sync):', err);
+          }
+        } else {
+          console.error('Path traversal attempt detected.');
         }
       } else {
         console.error('Invalid folder ID:', folderIdCha);
-      };
+      }
 
       await Users.findByIdAndDelete(id);
 
       await saveAction(req.userId.userId, `Xóa tài khoản ${item.tentaikhoan}`);
 
-        const schema = Joi.object({
-      id_user: Joi.string().required(),
-    });
+      const schema = Joi.object({
+        id_user: Joi.string().required(),
+      });
 
-    const { error, value } = schema.validate({
-      id_user: id_user,
-    });
-    if (error) {
-      return res.status(400).json({ status: false, message: 'Lỗi giá trị id_user' });
-    };
+      const { error, value } = schema.validate({
+        id_user: id_user,
+      });
+      if (error) {
+        return res.status(400).json({ status: false, message: 'Lỗi giá trị id_user' });
+      };
       let users = await Users.find({
         "taikhoancap": { $in: ["Cấp Phòng", "Cấp Xã"] },
         capcha: value.id_user
@@ -440,15 +465,15 @@ module.exports = {
         }
       };
       const schema = Joi.object({
-      id_user: Joi.string().required(),
-    });
+        id_user: Joi.string().required(),
+      });
 
-    const { error, value } = schema.validate({
-      id_user: id_user,
-    });
-    if (error) {
-      return res.status(400).json({ status: false, message: 'Lỗi giá trị id_user' });
-    };
+      const { error, value } = schema.validate({
+        id_user: id_user,
+      });
+      if (error) {
+        return res.status(400).json({ status: false, message: 'Lỗi giá trị id_user' });
+      };
       let users = await Users.find({
         "taikhoancap": { $in: ["Cấp Phòng", "Cấp Xã"] },
         capcha: value.id_user
@@ -503,16 +528,16 @@ module.exports = {
     let { id, matkhaucu, matkhaumoi } = req.body;
     try {
       const schema = Joi.object({
-      id: Joi.string().required(),
-      matkhaucu: Joi.string().required(),
-    });
+        id: Joi.string().required(),
+        matkhaucu: Joi.string().required(),
+      });
 
-    const { error, value } = schema.validate({
-      id: id, matkhaucu:matkhaucu
-    });
-    if (error) {
-      return res.status(400).json({ status: false, message: 'Lỗi giá trị id' });
-    };
+      const { error, value } = schema.validate({
+        id: id, matkhaucu: matkhaucu
+      });
+      if (error) {
+        return res.status(400).json({ status: false, message: 'Lỗi giá trị id' });
+      };
       let user = await Users.findOne({ _id: value.id, matkhau: value.matkhaucu });
       if (!user) {
         console.log('sai mk')
@@ -581,7 +606,7 @@ module.exports = {
   //lấy ra các tài khoản cấp con của 1 tài khoản
   fetchChildrenUser: async (req, res) => {
     let { id_user, year } = req.query;
-const schema = Joi.object({
+    const schema = Joi.object({
       id_user: Joi.string().required(),
       year: Joi.number().required(),
     });

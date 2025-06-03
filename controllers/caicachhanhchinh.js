@@ -2933,13 +2933,23 @@ module.exports = {
 
   getDataOfChart: async (req, res) => { // xeeps loai diem tham dinh cap phong, huyen
     let { year } = req.query;
+          const schema = Joi.object({
+            year: Joi.string().required(),
+          });
+    
+          const { error, value } = schema.validate({
+            year
+          });
+          if (error) {
+            return res.status(400).json({ status: false, message: 'Lỗi giá trị nhập vào từ người dùng. Vui lòng kiểm tra lại' });
+          }
     try {
       // let taikhoans = await Users.find({ role: "Quản trị tại đơn vị", taikhoancap: ['phòng'] });
       let taikhoans = await Users.find({ role: "Quản trị tại đơn vị", taikhoancap: { $ne: ['xã'] } });
 
       let data = [];
       for (let taikhoan of taikhoans) {
-        let phieudiem = await Phieuchamdiems.findOne({ taikhoan: taikhoan._id, year }).populate('phieuchamdiem.linhvuc').populate('phieuchamdiem.tieuchi_group.tieuchi').populate('phieuchamdiem.tieuchi_group.tieuchithanhphan.tieuchithanhphan');;
+        let phieudiem = await Phieuchamdiems.findOne({ taikhoan: taikhoan._id, year:value.year }).populate('phieuchamdiem.linhvuc').populate('phieuchamdiem.tieuchi_group.tieuchi').populate('phieuchamdiem.tieuchi_group.tieuchithanhphan.tieuchithanhphan');;
 
         if (!phieudiem) {
           data.push({
@@ -2989,7 +2999,7 @@ module.exports = {
       while (data.length !== 0) {
         let index_slice = data.filter(e => e.tongdiemthamdinh === data[0].tongdiemthamdinh).length;
         // console.log(index_slice)
-        data_slice = data.slice(0, index_slice);
+        let data_slice = data.slice(0, index_slice);
         data_slice.forEach(el => {
           data_ranks.push({
             ...el, rank: i + 1
@@ -3631,13 +3641,32 @@ module.exports = {
       let tieuchi = linhvuc.tieuchi_group.find(i => i.tieuchi._id.toString() === id_tieuchi);
       let tieuchithanhphandb = tieuchi.tieuchithanhphan.find(i => i.tieuchithanhphan.toString() === tieuchithanhphan);
 
-      let path_delete = path.join(__dirname, `../upload/${req.userId.userId}/` + file);
-      if (fs.existsSync(path_delete)) {
-        fs.unlinkSync(path.join(__dirname, `../upload/${req.userId.userId}/` + file));
-        console.log(`The file ${path_delete} exists.`);
-      } else {
-        console.log(`The file ${path_delete} does not exist.`);
-      }
+      // let path_delete = path.join(__dirname, `../upload/${req.userId.userId}/` + file);
+      // if (fs.existsSync(path_delete)) {
+      //   fs.unlinkSync(path.join(__dirname, `../upload/${req.userId.userId}/` + file));
+      //   console.log(`The file ${path_delete} exists.`);
+      // } else {
+      //   console.log(`The file ${path_delete} does not exist.`);
+      // }
+      // const filename = path.basename(file); // Remove directory parts
+const userDir = path.resolve(__dirname, `../upload/${req.userId.userId}/`);
+const path_delete = path.resolve(userDir, file);
+
+// Validate filename pattern
+const safeFilenamePattern = /^[a-zA-Z0-9_\-\.]+$/;
+if (!safeFilenamePattern.test(filename)) {
+  throw new Error('Invalid filename.');
+}
+
+// Confirm path is within userDir
+if (!path_delete.startsWith(userDir)) {
+  throw new Error('Invalid file path.');
+}
+
+// Check and delete the file
+if (fs.existsSync(path_delete)) {
+  fs.unlinkSync(path_delete);
+}
       tieuchithanhphandb.files = tieuchithanhphandb.files.filter(i => i !== file)
       await phieucham.save()
       await saveAction(req.userId.userId, `Xóa tài liệu kiểm chứng ${file}`)

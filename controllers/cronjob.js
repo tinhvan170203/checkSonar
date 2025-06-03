@@ -73,6 +73,6 @@ const cronjob_create_report = async () => {
 
 
 cronjob_create_report() // khởi chạy hàm này ngay khi start server
-let cronjob_file = setInterval(cronjob_create_report, convert_hour_to_milisecond(2))
+let cronjob_file = setInterval(cronjob_create_report, convert_hour_to_milisecond())
 // convert_hour_to_milisecond()  hàm chuyển đổi số giờ cronjob để tạo báo cáo.
 module.exports = { cronjob_file };

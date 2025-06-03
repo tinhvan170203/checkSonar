@@ -323,7 +323,7 @@ module.exports = {
                 // tìm xem đã có phiếu tự chấm điểm chưa, nếu chưa có thì chưa chấm điểm
                 let phieuchamdiem_of_user = await Phieuchamdiems.findOne({
                     taikhoan: user._id,
-                    year: year
+                    year: value.year
                 });
 
                 if (phieuchamdiem_of_user === null) {
@@ -434,7 +434,7 @@ module.exports = {
                 // tìm xem đã có phiếu tự chấm điểm chưa, nếu chưa có thì chưa chấm điểm
                 let phieuchamdiem_of_user = await Phieuchamdiems.findOne({
                     taikhoan: user._id,
-                    year: year
+                    year: value.year
                 });
 
                 if (phieuchamdiem_of_user === null) {
